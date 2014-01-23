@@ -23,15 +23,18 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 
 @Mod(modid = "Batty's Coordinates PLUS", name = "Batty's Coordinates PLUS", version = "1.7.2_1.3.2")
 /**
- *
+ * Forge base class for BattyUI
  * @author BatHeart
  */
 public class BattyBaseUI {
-    // The instance of your mod that Forge uses.
-
+	/**
+	 * This is the instance of Batty's Coordinates PLUS mod that Forge uses
+	 */
     @Instance("Batty's UI")
     public static BattyBaseUI instance;
-    // Says where the client and server 'proxy' code is loaded.
+	/**
+	 * Says where the client and server 'proxy' code is loaded.
+	 */
     @SidedProxy(clientSide = "batty.ui.client.ClientProxy", serverSide = "batty.ui.CommonProxy")
     public static CommonProxy proxy;
        

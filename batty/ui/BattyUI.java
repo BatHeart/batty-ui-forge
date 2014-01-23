@@ -28,8 +28,10 @@ import org.lwjgl.opengl.GL11;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 /**
- * 
+ * Handles Coordinate, Direction and Timer operation & display, and maintains the user options files
+ *
  * @author BatHeart
+ * @version 1.7.2 (1.3.2)
  */
 public class BattyUI extends Gui {
 
@@ -96,7 +98,10 @@ public class BattyUI extends Gui {
 	private int tickCounter = 0;
 	Properties propts = new Properties();
 	Properties proprt = new Properties();
-
+    /**
+     * Constructor for BattyUI: also handles reading of option files
+     * @param par1Minecraft Instance of Minecraft, giving access to variables and methods 
+     */
 	public BattyUI(Minecraft par1Minecraft) {
 		this.mc = par1Minecraft;
 
@@ -108,7 +113,12 @@ public class BattyUI extends Gui {
 		this.retrieveOptions();
 		this.retrieveRuntimeOptions();
 	}
-
+    /**
+     * Searches for 'name' within the array 'names'
+     * @param names Array of String to be searched
+     * @param name String that we expect to find
+     * @return Integer element where match found, or -1 if no match
+     */
 	private static int nameSearch(String[] names, String name) {
 		for (int n = 0; n < names.length; n++) {
 			if (names[n].equals(name)) {
@@ -117,7 +127,11 @@ public class BattyUI extends Gui {
 		}
 		return -1;
 	}
-
+    /**
+     * Given a 360-degree compass bearing, converts it to an integer relating to one of the 8 cardinal points of the compass
+     * @param par0 Floating point 360-degree compass bearing
+     * @return integer compass direction (0=North, 1=North-East etc)
+     */
 	private int getCardinalPoint(float par0) {
 		double myPoint;
 		myPoint = MathHelper.wrapAngleTo180_float(par0) + 180D;
@@ -126,13 +140,19 @@ public class BattyUI extends Gui {
 		myPoint /= 45D;
 		return MathHelper.floor_double(myPoint);
 	}
-
+	/**
+	 * Converts the Minecraft.showCoords variable into a String ready for writing to options file
+	 * @return a String containing value from "0" to "4"
+	 */
 	private String constructCoordVisString() {
 		String var1 = "";
 		var1 = var1 + this.showCoords;
 		return var1;
 	}
-
+	/**
+	 * Converts the Minecraft.hideTimer variable into a string ready for writing to options file
+	 * @return a String containing either "true" or "false"
+	 */
 	private String constructTimerVisString() {
 		String var1;
 		if (this.hideTimer) {
@@ -142,7 +162,10 @@ public class BattyUI extends Gui {
 		}
 		return var1;
 	}
-
+	/**
+	 * Takes the saved Timer value String (from the options file) and splits it into integer hour, minute and second parts 
+	 * @param var1 The Timer value String
+	 */
 	private void parseTimeString(String var1) {
 		Logger.getLogger("Minecraft").info(var1);
 		String[] var2 = var1.split("\\|");
@@ -150,7 +173,10 @@ public class BattyUI extends Gui {
 		this.minuteCounter = Integer.parseInt(var2[1]);
 		this.secondCounter = Integer.parseInt(var2[2]);
 	}
-
+	/**
+	 * Constructs a Time String from the hourCounter, minuteCounter and secondCounter variables
+	 * @return the Time as a String in "00:00:00" format
+	 */
 	private String constructTimeString() {
 		String var1 = "";
 		var1 = var1 + (this.hourCounter >= 10 ? "" : "0");
@@ -163,18 +189,25 @@ public class BattyUI extends Gui {
 		var1 = var1 + this.secondCounter;
 		return var1;
 	}
-
+	/**
+	 * Reformats the Time String ready to be written away to the options file
+	 * @return Time String, reformatted with "|" delimiters instead of ":"
+	 */
 	private String getSaveString() {
 		return this.constructTimeString().replace(":", "|");
 	}
-
+	/**
+	 * Sets all of the Timer variables back to zero, and resets the resetTimer flag
+	 */
 	private void resetTimer() {
 		this.resetTimer = false;
 		this.tickCounter = this.hourCounter = this.minuteCounter = this.secondCounter = 0;
 
 		this.storeRuntimeOptions();
 	}
-
+	/**
+	 * Increments the Timer by 1 second, handling overflow to minutes and hours as necessary
+	 */
 	private void addOneSecond() {
 		++this.secondCounter;
 
@@ -188,7 +221,10 @@ public class BattyUI extends Gui {
 			++this.hourCounter;
 		}
 	}
-
+	/**
+	 * Handles Timer activities - resets, stop/starts and general running 
+	 * @param var1 The in-game client-side tick counter (int)
+	 */
 	public void updateTimer(int var1) {
 		if (this.resetTimer) {
 			this.resetTimer();
@@ -210,7 +246,9 @@ public class BattyUI extends Gui {
 			}
 		}
 	}
-
+	/**
+	 * Handles the retrieval, interpretation and storage of all options from the BatMod.properties file
+	 */
 	private void retrieveOptions() {
 
 		if (this.optionsFile.exists()) {
@@ -333,7 +371,9 @@ public class BattyUI extends Gui {
 		}
 
 	}
-
+	/**
+	 * Handles retrieval, interpretation and storage of the saved game data from the BatMod.runtime file
+	 */
 	private void retrieveRuntimeOptions() {
 
 		if (this.runtimeFile.exists()) {
@@ -362,7 +402,9 @@ public class BattyUI extends Gui {
 		}
 
 	}
-
+	/**
+	 * Handles writing away the game data to the BatMod.runtime file
+	 */
 	private void storeRuntimeOptions() {
 
 		proprt.setProperty("Timer.saved", this.getSaveString());
@@ -377,7 +419,10 @@ public class BattyUI extends Gui {
 			e.printStackTrace();
 		}
 	}
-
+    /**
+     * Writes the player's Coordinates, Compass Bearing, Movement Indicators, Biome etc. onto the game screen
+     * Handles which elements are to be displayed, and adjusts screen location accordingly
+     */
 	private void renderPlayerCoords() {
 		GL11.glEnable(GL11.GL_ALPHA_TEST);
 		FontRenderer var8 = this.mc.fontRenderer;
@@ -560,7 +605,9 @@ public class BattyUI extends Gui {
 		}
 
 	}
-
+	/**
+	 * Writes the Timer String up onto the game screen
+	 */
 	private void renderPlayerTimer() {
 
 		GL11.glEnable(GL11.GL_ALPHA_TEST);
@@ -587,7 +634,10 @@ public class BattyUI extends Gui {
 					(int) startClockLocn, 2, myTimerStopText);
 		}
 	}
-
+	/**
+	 * Changes the coordinate display view by scrolling through the different options one by one
+	 * Also stores the current option into the BatMod.runtime file
+	 */
 	public void hideUnhideCoords() {
 		this.showCoords += 1;
 		if (this.showCoords > 4) {
@@ -596,13 +646,18 @@ public class BattyUI extends Gui {
 		this.storeRuntimeOptions();
 		BattyUIKeys.keyToggleCoords = false;
 	}
-
+	/**
+	 * Toggles the Timer visibility on and off
+	 * Also stores the current option into the BatMod.runtime file
+	 */
 	public void hideUnhideStopWatch() {
 		this.hideTimer = !this.hideTimer;
 		this.storeRuntimeOptions();
 		BattyUIKeys.keyToggleTimerVis = false;
 	}
-
+    /**
+     * Publicly exposed method, handles Coordinate and Timer rendering when they are intended to appear
+     */
 	@SubscribeEvent
 	public void renderPlayerInfo(RenderGameOverlayEvent event) {
 		if (event.isCancelable() || event.type != ElementType.EXPERIENCE) {

@@ -6,11 +6,10 @@ package batty.ui;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.InputEvent.KeyInputEvent;
-
 /**
- *
+ * Handles the detection of key-presses that Batty's Coordinates PLUS mod is interested in 
  * @author BatHeart
-**/
+ */
 public class BattyUIKeys {
 
     public static boolean keyToggleCoords = false;
