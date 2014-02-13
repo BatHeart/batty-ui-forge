@@ -26,10 +26,13 @@ import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import org.lwjgl.opengl.GL11;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.PlayerEvent.PlayerLoggedOutEvent;
+import cpw.mods.fml.common.network.FMLNetworkEvent.ClientDisconnectionFromServerEvent;
 
 /**
- * Handles Coordinate, Direction and Timer operation & display, and maintains the user options files
- *
+ * Handles Coordinate, Direction and Timer operation & display, and maintains
+ * the user options files
+ * 
  * @author BatHeart
  * @version 1.7.2 (1.3.2)
  */
@@ -64,16 +67,20 @@ public class BattyUI extends Gui {
 	int myMoveX;
 	int myMoveZ;
 	int myFind;
-	int myXLine;
-	int myYLine;
-	int myZLine;
-	int myBiomeLine;
+
+	int coordLocation = 0;
+
+	int myXLine, myYLine, myZLine, myBiomeLine;
 	int myBaseOffset;
-	int myCoord1Offset;
-	int myCoord2Offset;
-	int myXtender;
-	int myZtender;
+	int myCoord1Offset, myCoord2Offset;
 	int myRHSlocation;
+	int coordBoxW, coordBoxH;
+	int coordBoxL, coordBoxR, coordBoxTop, coordBoxBase;
+
+	int timerLocation = 1;
+	int clockBoxW, clockBoxH, clockBoxL, clockBoxR, clockBoxTop, clockBoxBase;
+	int myTimerLine, myTimerOffset;
+
 	private String myChevronUp = "+"; // default 'increasing coordinates'
 										// character
 	private String myChevronDown = "-"; // default 'decreasing coordinates'
@@ -98,10 +105,13 @@ public class BattyUI extends Gui {
 	private int tickCounter = 0;
 	Properties propts = new Properties();
 	Properties proprt = new Properties();
-    /**
-     * Constructor for BattyUI: also handles reading of option files
-     * @param par1Minecraft Instance of Minecraft, giving access to variables and methods 
-     */
+
+	/**
+	 * Constructor for BattyUI: also handles reading of option files
+	 * 
+	 * @param par1Minecraft
+	 *            Instance of Minecraft, giving access to variables and methods
+	 */
 	public BattyUI(Minecraft par1Minecraft) {
 		this.mc = par1Minecraft;
 
@@ -113,12 +123,16 @@ public class BattyUI extends Gui {
 		this.retrieveOptions();
 		this.retrieveRuntimeOptions();
 	}
-    /**
-     * Searches for 'name' within the array 'names'
-     * @param names Array of String to be searched
-     * @param name String that we expect to find
-     * @return Integer element where match found, or -1 if no match
-     */
+
+	/**
+	 * Searches for 'name' within the array 'names'
+	 * 
+	 * @param names
+	 *            Array of String to be searched
+	 * @param name
+	 *            String that we expect to find
+	 * @return Integer element where match found, or -1 if no match
+	 */
 	private static int nameSearch(String[] names, String name) {
 		for (int n = 0; n < names.length; n++) {
 			if (names[n].equals(name)) {
@@ -127,11 +141,15 @@ public class BattyUI extends Gui {
 		}
 		return -1;
 	}
-    /**
-     * Given a 360-degree compass bearing, converts it to an integer relating to one of the 8 cardinal points of the compass
-     * @param par0 Floating point 360-degree compass bearing
-     * @return integer compass direction (0=North, 1=North-East etc)
-     */
+
+	/**
+	 * Given a 360-degree compass bearing, converts it to an integer relating to
+	 * one of the 8 cardinal points of the compass
+	 * 
+	 * @param par0
+	 *            Floating point 360-degree compass bearing
+	 * @return integer compass direction (0=North, 1=North-East etc)
+	 */
 	private int getCardinalPoint(float par0) {
 		double myPoint;
 		myPoint = MathHelper.wrapAngleTo180_float(par0) + 180D;
@@ -140,8 +158,11 @@ public class BattyUI extends Gui {
 		myPoint /= 45D;
 		return MathHelper.floor_double(myPoint);
 	}
+
 	/**
-	 * Converts the Minecraft.showCoords variable into a String ready for writing to options file
+	 * Converts the Minecraft.showCoords variable into a String ready for
+	 * writing to options file
+	 * 
 	 * @return a String containing value from "0" to "4"
 	 */
 	private String constructCoordVisString() {
@@ -149,8 +170,23 @@ public class BattyUI extends Gui {
 		var1 = var1 + this.showCoords;
 		return var1;
 	}
+
 	/**
-	 * Converts the Minecraft.hideTimer variable into a string ready for writing to options file
+	 * Converts the Minecraft.coordLocation variable into a String ready for
+	 * writing to options file
+	 * 
+	 * @return a String containing value from "0" to "3"
+	 */
+	private String constructCoordLocString() {
+		String var1 = "";
+		var1 = var1 + this.coordLocation;
+		return var1;
+	}
+
+	/**
+	 * Converts the Minecraft.hideTimer variable into a string ready for writing
+	 * to options file
+	 * 
 	 * @return a String containing either "true" or "false"
 	 */
 	private String constructTimerVisString() {
@@ -162,9 +198,41 @@ public class BattyUI extends Gui {
 		}
 		return var1;
 	}
+
 	/**
-	 * Takes the saved Timer value String (from the options file) and splits it into integer hour, minute and second parts 
-	 * @param var1 The Timer value String
+	 * Converts the Minecraft.timerRunning variable into a string ready for
+	 * writing to options file
+	 * 
+	 * @return a String containing either "true" or "false"
+	 */
+	private String constructTimerRunString() {
+		String var1;
+		if (this.timerRunning) {
+			var1 = "false";
+		} else {
+			var1 = "true";
+		}
+		return var1;
+	}
+
+	/**
+	 * Converts the Minecraft.timerLocation variable into a String ready for
+	 * writing to options file
+	 * 
+	 * @return a String containing value from "0" to "3"
+	 */
+	private String constructTimerLocString() {
+		String var1 = "";
+		var1 = var1 + this.timerLocation;
+		return var1;
+	}
+
+	/**
+	 * Takes the saved Timer value String (from the options file) and splits it
+	 * into integer hour, minute and second parts
+	 * 
+	 * @param var1
+	 *            The Timer value String
 	 */
 	private void parseTimeString(String var1) {
 		Logger.getLogger("Minecraft").info(var1);
@@ -173,8 +241,11 @@ public class BattyUI extends Gui {
 		this.minuteCounter = Integer.parseInt(var2[1]);
 		this.secondCounter = Integer.parseInt(var2[2]);
 	}
+
 	/**
-	 * Constructs a Time String from the hourCounter, minuteCounter and secondCounter variables
+	 * Constructs a Time String from the hourCounter, minuteCounter and
+	 * secondCounter variables
+	 * 
 	 * @return the Time as a String in "00:00:00" format
 	 */
 	private String constructTimeString() {
@@ -189,15 +260,19 @@ public class BattyUI extends Gui {
 		var1 = var1 + this.secondCounter;
 		return var1;
 	}
+
 	/**
 	 * Reformats the Time String ready to be written away to the options file
+	 * 
 	 * @return Time String, reformatted with "|" delimiters instead of ":"
 	 */
 	private String getSaveString() {
 		return this.constructTimeString().replace(":", "|");
 	}
+
 	/**
-	 * Sets all of the Timer variables back to zero, and resets the resetTimer flag
+	 * Sets all of the Timer variables back to zero, and resets the resetTimer
+	 * flag
 	 */
 	private void resetTimer() {
 		this.resetTimer = false;
@@ -205,8 +280,10 @@ public class BattyUI extends Gui {
 
 		this.storeRuntimeOptions();
 	}
+
 	/**
-	 * Increments the Timer by 1 second, handling overflow to minutes and hours as necessary
+	 * Increments the Timer by 1 second, handling overflow to minutes and hours
+	 * as necessary
 	 */
 	private void addOneSecond() {
 		++this.secondCounter;
@@ -221,9 +298,12 @@ public class BattyUI extends Gui {
 			++this.hourCounter;
 		}
 	}
+
 	/**
-	 * Handles Timer activities - resets, stop/starts and general running 
-	 * @param var1 The in-game client-side tick counter (int)
+	 * Handles Timer activities - resets, stop/starts and general running
+	 * 
+	 * @param var1
+	 *            The in-game client-side tick counter (int)
 	 */
 	public void updateTimer(int var1) {
 		if (this.resetTimer) {
@@ -246,8 +326,10 @@ public class BattyUI extends Gui {
 			}
 		}
 	}
+
 	/**
-	 * Handles the retrieval, interpretation and storage of all options from the BatMod.properties file
+	 * Handles the retrieval, interpretation and storage of all options from the
+	 * BatMod.properties file
 	 */
 	private void retrieveOptions() {
 
@@ -276,6 +358,7 @@ public class BattyUI extends Gui {
 		String myTxtCol5 = propts.getProperty("Coords.colours.BiomeText");
 		String myTxtCol8 = propts.getProperty("Coords.colours.PosChunkText");
 		String myTxtCol9 = propts.getProperty("Coords.colours.NegChunkText");
+		String myTxtLoc1 = propts.getProperty("Coords.layout.ScreenPosition");
 
 		if (myShade != null) {
 			this.shadedCoords = myShade.equals("true");
@@ -351,9 +434,17 @@ public class BattyUI extends Gui {
 				myNegChunkText = myColourCodes[myFind];
 			}
 		}
+		/*
+		 * if (myTxtLoc1 != null) { if (myTxtLoc1.equals("topleft")) {
+		 * this.coordLocation = 0; } else if (myTxtLoc1.equals("topright")) {
+		 * this.coordLocation = 1; } else if (myTxtLoc1.equals("bottomleft")) {
+		 * this.coordLocation = 2; } else if (myTxtLoc1.equals("bottomright")) {
+		 * this.coordLocation = 3; } }
+		 */
 		myShade = propts.getProperty("Timer.shade");
 		myTxtCol1 = propts.getProperty("Timer.colours.Stopped");
 		myTxtCol2 = propts.getProperty("Timer.colours.Running");
+		myTxtLoc1 = propts.getProperty("Timer.layout.ScreenPosition");
 		if (myShade != null) {
 			this.shadedTimer = myShade.equals("true");
 		}
@@ -369,10 +460,18 @@ public class BattyUI extends Gui {
 				myTimerRunText = myColourCodes[myFind];
 			}
 		}
-
+		/*
+		 * if (myTxtLoc1 != null) { if (myTxtLoc1.equals("topleft")) {
+		 * this.timerLocation = 0; } else if (myTxtLoc1.equals("topright")) {
+		 * this.timerLocation = 1; } else if (myTxtLoc1.equals("bottomleft")) {
+		 * this.timerLocation = 2; } else if (myTxtLoc1.equals("bottomright")) {
+		 * this.timerLocation = 3; } }
+		 */
 	}
+
 	/**
-	 * Handles retrieval, interpretation and storage of the saved game data from the BatMod.runtime file
+	 * Handles retrieval, interpretation and storage of the saved game data from
+	 * the BatMod.runtime file
 	 */
 	private void retrieveRuntimeOptions() {
 
@@ -400,8 +499,20 @@ public class BattyUI extends Gui {
 		if (myTimerVis != null) {
 			this.hideTimer = !myTimerVis.equals("true");
 		}
-
+		String myCoordsLoc = proprt.getProperty("Coords.location");
+		if (myCoordsLoc != null) {
+			this.coordLocation = Integer.parseInt(myCoordsLoc);
+		}
+		String myTimerLoc = proprt.getProperty("Timer.location");
+		if (myTimerLoc != null) {
+			this.timerLocation = Integer.parseInt(myTimerLoc);
+		}
+		String myTimerRuns = proprt.getProperty("Timer.running");
+		if (myTimerRuns != null) {
+			this.timerRunning = !myTimerRuns.equals("true");
+		}
 	}
+
 	/**
 	 * Handles writing away the game data to the BatMod.runtime file
 	 */
@@ -410,7 +521,9 @@ public class BattyUI extends Gui {
 		proprt.setProperty("Timer.saved", this.getSaveString());
 		proprt.setProperty("Coords.visible", this.constructCoordVisString());
 		proprt.setProperty("Timer.visible", this.constructTimerVisString());
-
+		proprt.setProperty("Coords.location", this.constructCoordLocString());
+		proprt.setProperty("Timer.location", this.constructTimerLocString());
+		proprt.setProperty("Timer.running", this.constructTimerRunString());
 		try {
 			FileOutputStream fos = new FileOutputStream(this.runtimeFile);
 			proprt.store(fos, null);
@@ -419,16 +532,19 @@ public class BattyUI extends Gui {
 			e.printStackTrace();
 		}
 	}
-    /**
-     * Writes the player's Coordinates, Compass Bearing, Movement Indicators, Biome etc. onto the game screen
-     * Handles which elements are to be displayed, and adjusts screen location accordingly
-     */
+
+	/**
+	 * Writes the player's Coordinates, Compass Bearing, Movement Indicators,
+	 * Biome etc. onto the game screen Handles which elements are to be
+	 * displayed, and adjusts screen location accordingly
+	 */
 	private void renderPlayerCoords() {
 		GL11.glEnable(GL11.GL_ALPHA_TEST);
 		FontRenderer var8 = this.mc.fontRenderer;
-
+		ScaledResolution myRes = new ScaledResolution(this.mc.gameSettings,
+				this.mc.displayWidth, this.mc.displayHeight);
 		myPosX = MathHelper.floor_double(this.mc.thePlayer.posX);
-		myPosY = MathHelper.floor_double(this.mc.thePlayer.posY);
+		myPosY = MathHelper.floor_double(this.mc.thePlayer.boundingBox.minY);
 		myPosZ = MathHelper.floor_double(this.mc.thePlayer.posZ);
 		myAngle = getCardinalPoint(this.mc.thePlayer.rotationYaw);
 		myDir = MathHelper
@@ -436,33 +552,58 @@ public class BattyUI extends Gui {
 		myMoveX = Direction.offsetX[myDir];
 		myMoveZ = Direction.offsetZ[myDir];
 
-		// screen locations
-		myXLine = 2;
-		myYLine = 12;
-		myZLine = 22;
-		myBiomeLine = 32;
-		myBaseOffset = 2;
-		myCoord1Offset = 12;
-		myCoord2Offset = 35;
+		// Coord display modes beyond basic require more space
 		if (this.showCoords > 2) {
-			myXtender = 30;
-			myZtender = 10;
+			coordBoxW = 100;
+			coordBoxH = 40;
 		} else {
-			myXtender = 0;
-			myZtender = 0;
+			coordBoxW = 70;
+			coordBoxH = 30;
+		}
+		// screen locations
+		switch (this.coordLocation) {
+		case 0:
+			// top left positioning
+			coordBoxR = coordBoxW + 1;
+			coordBoxBase = coordBoxH + 1;
+			break;
+		case 1:
+			// top right positioning
+			coordBoxR = myRes.getScaledWidth() - 1;
+			coordBoxBase = coordBoxH + 1;
+			break;
+
+		case 2:
+			// Bottom Right Positioning
+			coordBoxR = myRes.getScaledWidth() - 1;
+			coordBoxBase = myRes.getScaledHeight() - 1;
+			break;
+
+		case 3:
+			// bottom left positioning ** not permitted **
+			coordBoxR = coordBoxW + 1;
+			coordBoxBase = myRes.getScaledHeight() - 1;
+			break;
 		}
 
+		coordBoxL = coordBoxR - coordBoxW;
+		coordBoxTop = coordBoxBase - coordBoxH;
+		myXLine = coordBoxTop + 1;
+		myYLine = myXLine + 10;
+		myZLine = myYLine + 10;
+		myBiomeLine = myZLine + 10;
+		myBaseOffset = coordBoxL + 1;
+		myCoord1Offset = myBaseOffset + 10;
+		myCoord2Offset = myBaseOffset + 33;
 		if (this.showCoords > 3) {
-			myRHSlocation = 78;
+			myRHSlocation = myBaseOffset + 77;
 		} else {
-			myRHSlocation = 58;
+			myRHSlocation = myBaseOffset + 57;
 		}
 
 		if (this.shadedCoords) {
-
-			drawRect((int) 1, 1, (71 + myXtender), (31 + myZtender),
+			drawRect((int) coordBoxL, coordBoxTop, coordBoxR, coordBoxBase,
 					myRectColour);
-
 		}
 
 		var8.drawStringWithShadow(String.format("X: "), myBaseOffset, myXLine,
@@ -518,8 +659,8 @@ public class BattyUI extends Gui {
 						myCoord1Offset, myXLine, myPosChunkText);
 			}
 			var8.drawStringWithShadow(String.format("%d",
-					new Object[] { Integer.valueOf(myPosY) }), 12, myYLine,
-					myPosCoordText);
+					new Object[] { Integer.valueOf(myPosY) }), myCoord1Offset,
+					myYLine, myPosCoordText);
 			if (myPosZ >= 0) {
 				var8.drawStringWithShadow(
 						String.format("c%d ",
@@ -542,8 +683,6 @@ public class BattyUI extends Gui {
 		}
 		var8.drawStringWithShadow(myCardinalPoint[myAngle], myRHSlocation,
 				myYLine, myCompassText);
-		// var8.drawStringWithShadow(String.format(Direction.directions[myDir].substring(0,
-		// 1)), 62, 12, 0xFF8800);
 
 		if (this.showCoords > 1) {
 			switch (myAngle) {
@@ -589,9 +728,7 @@ public class BattyUI extends Gui {
 				break;
 			}
 		}
-		// ItemStack var10 = new ItemStack(Item.compass);
-		// itemRenderer.renderItemAndEffectIntoGUI(var8, this.mc.renderEngine,
-		// var10, 66, 2);
+
 		if (this.showCoords > 2) {
 			if (this.mc.theWorld != null
 					&& this.mc.theWorld.blockExists(myPosX, myPosY, myPosZ)) {
@@ -605,6 +742,7 @@ public class BattyUI extends Gui {
 		}
 
 	}
+
 	/**
 	 * Writes the Timer String up onto the game screen
 	 */
@@ -614,29 +752,77 @@ public class BattyUI extends Gui {
 		ScaledResolution myRes = new ScaledResolution(this.mc.gameSettings,
 				this.mc.displayWidth, this.mc.displayHeight);
 		String myTime = this.constructTimeString();
-		float timeStringWid = (float) this.mc.fontRenderer
-				.getStringWidth(myTime);
-		float timeStringWider = 12.0F + timeStringWid;
-		float startClockLocn = (float) (myRes.getScaledWidth())
-				- timeStringWider;
-		startClockLocn += 5.0F;
-		timeStringWid = (float) this.mc.fontRenderer.getStringWidth(myTime);
+		int timeStringWid = this.mc.fontRenderer.getStringWidth(myTime);
+		clockBoxW = 12 + timeStringWid;
+		clockBoxH = 10;
+
+		// screen locations
+		switch (this.timerLocation) {
+		case 0:
+			// top left positioning
+			clockBoxR = clockBoxW + 1;
+			clockBoxBase = clockBoxH + 1;
+			if (this.coordLocation == 0) {
+				clockBoxBase += (coordBoxH + 1);
+			}
+			break;
+		case 1:
+			// top centre positioning
+			clockBoxR = (myRes.getScaledWidth() / 2) + (clockBoxW / 2);
+			clockBoxBase = clockBoxH + 1;
+			break;
+			
+		case 2:
+			// top right positioning
+			clockBoxR = myRes.getScaledWidth() - 1;
+			clockBoxBase = clockBoxH + 1;
+			if (this.coordLocation == 1) {
+				clockBoxBase += (coordBoxH + 1);
+			}
+			break;
+
+		case 3:
+			// bottom right positioning
+			clockBoxR = myRes.getScaledWidth() - 1;
+			clockBoxBase = myRes.getScaledHeight() - 1;
+			if (this.coordLocation == 2) {
+				clockBoxBase -= (coordBoxH + 1);
+			}
+			break;
+
+		case 4:
+			// Bottom left Positioning
+			clockBoxR = clockBoxW + 1;
+			clockBoxBase = myRes.getScaledHeight() - 15;
+			if (this.coordLocation == 3) {
+				clockBoxBase -= (coordBoxH + 1);
+			}
+			break;
+		}
+		clockBoxL = clockBoxR - clockBoxW;
+		clockBoxTop = clockBoxBase - clockBoxH;
+
+		myTimerLine = clockBoxTop + 1;
+		myTimerOffset = clockBoxL + 6;
+
 		if (this.shadedTimer) {
-			drawRect((int) (startClockLocn - 6.0F), 1, (int) (startClockLocn
-					+ timeStringWid + 6.0F), 11, 0x88555555);
+			drawRect((int) clockBoxL, clockBoxTop, clockBoxR, clockBoxBase,
+					myRectColour);
 
 		}
 		if (this.timerRunning) {
-			this.mc.fontRenderer.drawStringWithShadow(myTime,
-					(int) startClockLocn, 2, myTimerRunText);
+			this.mc.fontRenderer.drawStringWithShadow(myTime, myTimerOffset,
+					myTimerLine, myTimerRunText);
 		} else {
-			this.mc.fontRenderer.drawStringWithShadow(myTime,
-					(int) startClockLocn, 2, myTimerStopText);
+			this.mc.fontRenderer.drawStringWithShadow(myTime, myTimerOffset,
+					myTimerLine, myTimerStopText);
 		}
 	}
+
 	/**
-	 * Changes the coordinate display view by scrolling through the different options one by one
-	 * Also stores the current option into the BatMod.runtime file
+	 * Changes the coordinate display view by scrolling through the different
+	 * options one by one Also stores the current option into the BatMod.runtime
+	 * file
 	 */
 	public void hideUnhideCoords() {
 		this.showCoords += 1;
@@ -646,18 +832,47 @@ public class BattyUI extends Gui {
 		this.storeRuntimeOptions();
 		BattyUIKeys.keyToggleCoords = false;
 	}
+
 	/**
-	 * Toggles the Timer visibility on and off
-	 * Also stores the current option into the BatMod.runtime file
+	 * Moves the position that the coordinates appear in on-screen between the
+	 * four corners
+	 */
+	public void rotateScreenCoords() {
+		this.coordLocation += 1;
+		if (this.coordLocation > 2) {
+			this.coordLocation = 0;
+		}
+		this.storeRuntimeOptions();
+		BattyUIKeys.keyMoveCoords = false;
+	}
+
+	/**
+	 * Toggles the Timer visibility on and off Also stores the current option
+	 * into the BatMod.runtime file
 	 */
 	public void hideUnhideStopWatch() {
 		this.hideTimer = !this.hideTimer;
 		this.storeRuntimeOptions();
 		BattyUIKeys.keyToggleTimerVis = false;
 	}
-    /**
-     * Publicly exposed method, handles Coordinate and Timer rendering when they are intended to appear
-     */
+
+	/**
+	 * Moves the position that the timer appears in on-screen between the four
+	 * corners
+	 */
+	public void rotateScreenTimer() {
+		this.timerLocation += 1;
+		if (this.timerLocation > 4) {
+			this.timerLocation = 0;
+		}
+		this.storeRuntimeOptions();
+		BattyUIKeys.keyMoveTimer = false;
+	}
+
+	/**
+	 * Publicly exposed method, handles Coordinate and Timer rendering when they
+	 * are intended to appear
+	 */
 	@SubscribeEvent
 	public void renderPlayerInfo(RenderGameOverlayEvent event) {
 		if (event.isCancelable() || event.type != ElementType.EXPERIENCE) {
@@ -666,6 +881,10 @@ public class BattyUI extends Gui {
 
 		if (BattyUIKeys.keyToggleCoords) {
 			this.hideUnhideCoords();
+		}
+
+		if (BattyUIKeys.keyMoveCoords) {
+			this.rotateScreenCoords();
 		}
 
 		if (BattyUIKeys.keyToggleTimerVis) {
@@ -682,11 +901,17 @@ public class BattyUI extends Gui {
 			BattyUIKeys.keyResetTimer = false;
 		}
 
+		if (BattyUIKeys.keyMoveTimer) {
+			this.rotateScreenTimer();
+		}
+
 		this.updateTimer(this.mc.ingameGUI.getUpdateCounter());
 
 		if (!this.mc.gameSettings.showDebugInfo) {
 			if (this.showCoords > 0) {
 				this.renderPlayerCoords();
+			} else {
+				this.coordBoxH = 0;
 			}
 			if (!this.hideTimer) {
 				this.renderPlayerTimer();
@@ -694,4 +919,5 @@ public class BattyUI extends Gui {
 		}
 
 	}
+
 }

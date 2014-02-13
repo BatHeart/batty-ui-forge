@@ -12,22 +12,28 @@ import cpw.mods.fml.common.gameevent.InputEvent.KeyInputEvent;
  */
 public class BattyUIKeys {
 
-    public static boolean keyToggleCoords = false;
-    public static boolean keyToggleTimerVis = false;
-    public static boolean keyToggleTimerRun = false;
-    public static boolean keyResetTimer = false;
-    
-    @SubscribeEvent
+	public static boolean keyToggleCoords = false;
+	public static boolean keyMoveCoords = false;
+	public static boolean keyToggleTimerVis = false;
+	public static boolean keyToggleTimerRun = false;
+	public static boolean keyResetTimer = false;
+	public static boolean keyMoveTimer = false;
+
+	@SubscribeEvent
 	public void trackKeyInputs(KeyInputEvent event) {
 
-		if (BattyBaseUI.hideunhideCoordskey.func_151468_f()) {
+		if (BattyBaseUI.hideunhideCoordskey.isPressed()) {
 			keyToggleCoords = true;
-		} else if (BattyBaseUI.hideunhideTimerkey.func_151468_f()) {
+		} else if (BattyBaseUI.moveCoordScreenPos.isPressed()) {
+			keyMoveCoords = true;
+		} else if (BattyBaseUI.hideunhideTimerkey.isPressed()) {
 			keyToggleTimerVis = true;
-		} else if (BattyBaseUI.startstopTimerkey.func_151468_f()) {
+		} else if (BattyBaseUI.startstopTimerkey.isPressed()) {
 			keyToggleTimerRun = true;
-		} else if (BattyBaseUI.resetTimerkey.func_151468_f()) {
+		} else if (BattyBaseUI.resetTimerkey.isPressed()) {
 			keyResetTimer = true;
+		} else if (BattyBaseUI.moveTimerScreenPos.isPressed()){
+			keyMoveTimer = true;
 		}
 
 	}
