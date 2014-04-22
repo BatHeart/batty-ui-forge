@@ -19,6 +19,7 @@ import net.minecraft.client.gui.GuiIngame;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.util.Direction;
 import net.minecraft.util.MathHelper;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
@@ -26,6 +27,7 @@ import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import org.lwjgl.opengl.GL11;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent.PlayerLoggedOutEvent;
 import cpw.mods.fml.common.network.FMLNetworkEvent.ClientDisconnectionFromServerEvent;
 
@@ -38,8 +40,9 @@ import cpw.mods.fml.common.network.FMLNetworkEvent.ClientDisconnectionFromServer
  */
 public class BattyUI extends Gui {
 
-	private final Minecraft mc;
-	private GuiIngame gui;
+	private static Minecraft mc;
+	private static GuiIngame gui = new GuiIngame(mc);
+	
 	int showCoords = 1;
 	boolean shadedCoords = true;
 	boolean hideTimer = false;
@@ -68,6 +71,14 @@ public class BattyUI extends Gui {
 	int myMoveZ;
 	int myFind;
 
+	protected static final ResourceLocation batUIResourceLocation = new ResourceLocation("battyUI:textures/batheart_icon.png");
+	
+	static float batLogoScaler = 0.036F;
+	static int batLogoU = 0;
+	static int batLogoV = 0;
+	static int batLogoX = (int) (256.0F * batLogoScaler);
+	static int batLogoY = (int) (256.0D * batLogoScaler);
+	
 	int coordLocation = 0;
 
 	int myXLine, myYLine, myZLine, myBiomeLine;
@@ -77,7 +88,7 @@ public class BattyUI extends Gui {
 	int coordBoxW, coordBoxH;
 	int coordBoxL, coordBoxR, coordBoxTop, coordBoxBase;
 
-	int timerLocation = 1;
+	int timerLocation = 2;
 	int clockBoxW, clockBoxH, clockBoxL, clockBoxR, clockBoxTop, clockBoxBase;
 	int myTimerLine, myTimerOffset;
 
@@ -115,8 +126,6 @@ public class BattyUI extends Gui {
 	public BattyUI(Minecraft par1Minecraft) {
 		this.mc = par1Minecraft;
 
-		this.gui = this.mc.ingameGUI;
-
 		this.optionsFile = new File(this.mc.mcDataDir, "BatMod.properties");
 		this.runtimeFile = new File(this.mc.mcDataDir, "BatMod.runtime");
 
@@ -124,6 +133,43 @@ public class BattyUI extends Gui {
 		this.retrieveRuntimeOptions();
 	}
 
+	/**
+	 * Draws a rectangle of the texture provided at the location specified, sized and scaled as specified
+	 */
+	public static void drawTexture(int x, int y, int u, int v, int width,
+			int height, ResourceLocation resourceLocation, float scaler)
+
+	{
+		x = (int) (x / scaler);
+		y = (int) (y / scaler);
+
+		GL11.glPushMatrix();
+		GL11.glDisable(GL11.GL_LIGHTING);
+		GL11.glScalef(scaler, scaler, scaler);
+
+		mc.renderEngine.bindTexture(resourceLocation);
+		gui.drawTexturedModalRect(x, y, u, v, width, height);
+
+		GL11.glPopMatrix();
+	}
+/**
+ * Calls drawTexture() to present the BatHeart Logo at the screen position specified
+ * @param x - location across screen from left to right
+ * @param y - location down screen from top to bottom
+ */
+	protected static void drawLogoTexture(int x, int y) {
+		GL11.glEnable(GL11.GL_BLEND);
+		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+		GL11.glColor4f(255.0F, 255.0F, 255.0F, 255.0F);
+
+		drawTexture(x, y, batLogoU, batLogoV, (int) (batLogoX / batLogoScaler),
+				(int) (batLogoY / batLogoScaler), batUIResourceLocation,
+				batLogoScaler);
+
+		GL11.glDisable(GL11.GL_BLEND);
+	}
+	
+	
 	/**
 	 * Searches for 'name' within the array 'names'
 	 * 
@@ -553,6 +599,7 @@ public class BattyUI extends Gui {
 		myMoveZ = Direction.offsetZ[myDir];
 
 		// Coord display modes beyond basic require more space
+		int compassW = this.mc.fontRenderer.getStringWidth(myCardinalPoint[7]);
 		if (this.showCoords > 2) {
 			coordBoxW = 100;
 			coordBoxH = 40;
@@ -596,7 +643,8 @@ public class BattyUI extends Gui {
 		myCoord1Offset = myBaseOffset + 10;
 		myCoord2Offset = myBaseOffset + 33;
 		if (this.showCoords > 3) {
-			myRHSlocation = myBaseOffset + 77;
+			//myRHSlocation = myBaseOffset + 77;
+			myRHSlocation = coordBoxR - compassW - 1;
 		} else {
 			myRHSlocation = myBaseOffset + 57;
 		}
@@ -681,6 +729,9 @@ public class BattyUI extends Gui {
 						myCoord1Offset, myZLine, myPosChunkText);
 			}
 		}
+		
+		drawLogoTexture((myRHSlocation - 12), (myYLine-1));
+				
 		var8.drawStringWithShadow(myCardinalPoint[myAngle], myRHSlocation,
 				myYLine, myCompassText);
 
@@ -919,5 +970,6 @@ public class BattyUI extends Gui {
 		}
 
 	}
+	
 
 }

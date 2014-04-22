@@ -62,7 +62,7 @@ public class BattyBaseUI {
 		ClientRegistry.registerKeyBinding(startstopTimerkey);
 		ClientRegistry.registerKeyBinding(resetTimerkey);
 		ClientRegistry.registerKeyBinding(moveTimerScreenPos);
-
+		
 	}
 
 	@EventHandler
