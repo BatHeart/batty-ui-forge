@@ -4,6 +4,8 @@
  */
 package batty.ui;
 
+import java.awt.Toolkit;
+import java.awt.datatransfer.StringSelection;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -36,7 +38,7 @@ import cpw.mods.fml.common.network.FMLNetworkEvent.ClientDisconnectionFromServer
  * the user options files
  * 
  * @author BatHeart
- * @version 1.7.2 (1.3.2)
+ * @version 1.7.2 (1.5.2)
  */
 public class BattyUI extends Gui {
 
@@ -654,11 +656,11 @@ public class BattyUI extends Gui {
 					myRectColour);
 		}
 
-		var8.drawStringWithShadow(String.format("X: "), myBaseOffset, myXLine,
+		var8.drawStringWithShadow(String.format("x: "), myBaseOffset, myXLine,
 				myTitleText);
-		var8.drawStringWithShadow(String.format("Y: "), myBaseOffset, myYLine,
+		var8.drawStringWithShadow(String.format("y: "), myBaseOffset, myYLine,
 				myTitleText);
-		var8.drawStringWithShadow(String.format("Z: "), myBaseOffset, myZLine,
+		var8.drawStringWithShadow(String.format("z: "), myBaseOffset, myZLine,
 				myTitleText);
 		if (this.showCoords < 4) {
 			if (myPosX >= 0) {
@@ -896,7 +898,18 @@ public class BattyUI extends Gui {
 		this.storeRuntimeOptions();
 		BattyUIKeys.keyMoveCoords = false;
 	}
-
+/**
+ * Copies the current XYZ coordinates as a string into the System Clipboard for
+ * pasting wherever the player wishes
+ */
+	public void copyScreenCoords() {
+		
+	    StringSelection myCoordString = new StringSelection("x:" + myPosX + " y:" + myPosY + " z:" + myPosZ);
+	    Toolkit.getDefaultToolkit().getSystemClipboard().setContents(myCoordString, null);
+		
+		BattyUIKeys.keyCopyCoords = false;
+	}
+		
 	/**
 	 * Toggles the Timer visibility on and off Also stores the current option
 	 * into the BatMod.runtime file
@@ -926,7 +939,7 @@ public class BattyUI extends Gui {
 	 */
 	@SubscribeEvent
 	public void renderPlayerInfo(RenderGameOverlayEvent event) {
-		if (event.isCancelable() || event.type != ElementType.EXPERIENCE) {
+		if (event.isCancelable() || event.type != ElementType.HOTBAR) {
 			return;
 		}
 
@@ -936,6 +949,10 @@ public class BattyUI extends Gui {
 
 		if (BattyUIKeys.keyMoveCoords) {
 			this.rotateScreenCoords();
+		}
+		
+		if (BattyUIKeys.keyCopyCoords) {
+			this.copyScreenCoords();
 		}
 
 		if (BattyUIKeys.keyToggleTimerVis) {

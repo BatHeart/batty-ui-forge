@@ -14,6 +14,7 @@ public class BattyUIKeys {
 
 	public static boolean keyToggleCoords = false;
 	public static boolean keyMoveCoords = false;
+	public static boolean keyCopyCoords = false; 
 	public static boolean keyToggleTimerVis = false;
 	public static boolean keyToggleTimerRun = false;
 	public static boolean keyResetTimer = false;
@@ -26,7 +27,9 @@ public class BattyUIKeys {
 			keyToggleCoords = true;
 		} else if (BattyBaseUI.moveCoordScreenPos.isPressed()) {
 			keyMoveCoords = true;
-		} else if (BattyBaseUI.hideunhideTimerkey.isPressed()) {
+		} else if (BattyBaseUI.copyCoordsClipboard.isPressed()) {
+			keyCopyCoords = true;			
+        } else if (BattyBaseUI.hideunhideTimerkey.isPressed()) {
 			keyToggleTimerVis = true;
 		} else if (BattyBaseUI.startstopTimerkey.isPressed()) {
 			keyToggleTimerRun = true;
