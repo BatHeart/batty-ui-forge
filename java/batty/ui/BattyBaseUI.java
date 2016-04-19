@@ -21,7 +21,7 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 
-@Mod(modid = "Batty's Coordinates PLUS", name = "Batty's Coordinates PLUS", version = "1.8.8_1.10.0")
+@Mod(modid = "Batty's Coordinates PLUS", name = "Batty's Coordinates PLUS", version = "1.9_1.9.0")
 /**
  * Forge base class for BattyUI
  * @author BatHeart

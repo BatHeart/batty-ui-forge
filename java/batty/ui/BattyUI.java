@@ -20,9 +20,9 @@ import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiIngame;
 import net.minecraft.client.gui.GuiMainMenu;
 import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.util.BlockPos;
+import net.minecraft.util.math.BlockPos;
 //import net.minecraft.util.Direction;
-import net.minecraft.util.MathHelper;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.client.event.GuiOpenEvent;
@@ -39,7 +39,7 @@ import net.minecraftforge.fml.common.gameevent.PlayerEvent;
  * the user options files
  * 
  * @author BatHeart
- * @version 1.8.8 (1.10.0)
+ * @version 1.9 (1.9.01)
  */
 public class BattyUI extends Gui {
 
@@ -715,79 +715,79 @@ public class BattyUI extends Gui {
 					myRectColour);
 		}
 
-		var8.drawStringWithShadow(String.format("x: "), myBaseOffset, myXLine,
+		var8.drawString(String.format("x: "), myBaseOffset, myXLine,
 				myTitleText);
-		var8.drawStringWithShadow(String.format("y: "), myBaseOffset, myYLine,
+		var8.drawString(String.format("y: "), myBaseOffset, myYLine,
 				myTitleText);
-		var8.drawStringWithShadow(String.format("z: "), myBaseOffset, myZLine,
+		var8.drawString(String.format("z: "), myBaseOffset, myZLine,
 				myTitleText);
 
 		if (this.showCoords < 4) {
 			if (!myXminus) {
-				var8.drawStringWithShadow(
+				var8.drawString(
 						String.format("%d",
 								new Object[] { Integer.valueOf(myPosX) }),
 						myCoord1Offset, myXLine, myPosCoordText);
 			} else {
-				var8.drawStringWithShadow("-", myCoord0Offset, myXLine, myNegCoordText);
-				var8.drawStringWithShadow(
+				var8.drawString("-", myCoord0Offset, myXLine, myNegCoordText);
+				var8.drawString(
 						String.format("%d",
 								new Object[] { Integer.valueOf(Math.abs(myPosX)) }),
 						myCoord1Offset, myXLine, myNegCoordText);
 			}
-			var8.drawStringWithShadow(String.format("%d",
+			var8.drawString(String.format("%d",
 					new Object[] { Integer.valueOf(myPosY) }), myCoord1Offset,
 					myYLine, myPosCoordText);
 			if (!myZminus) {
-				var8.drawStringWithShadow(
+				var8.drawString(
 						String.format("%d",
 								new Object[] { Integer.valueOf(myPosZ) }),
 						myCoord1Offset, myZLine, myPosCoordText);
 			} else {
-				var8.drawStringWithShadow("-", myCoord0Offset, myZLine, myNegCoordText);
-				var8.drawStringWithShadow(
+				var8.drawString("-", myCoord0Offset, myZLine, myNegCoordText);
+				var8.drawString(
 						String.format("%d",
 								new Object[] { Integer.valueOf(Math.abs(myPosZ)) }),
 						myCoord1Offset, myZLine, myNegCoordText);
 			}
 		} else {
 			if (myPosX >= 0) {
-				var8.drawStringWithShadow(
+				var8.drawString(
 						String.format("c%d ",
 								new Object[] { Integer.valueOf(myPosX >> 4) }),
 						myCoord2Offset, myXLine, myPosChunkText);
-				var8.drawStringWithShadow(
+				var8.drawString(
 						String.format("b%d",
 								new Object[] { Integer.valueOf(myPosX & 15) }),
 						myCoord1Offset, myXLine, myPosChunkText);
 			} else {
-				var8.drawStringWithShadow(
+				var8.drawString(
 						String.format("c%d ",
 								new Object[] { Integer.valueOf(myPosX >> 4) }),
 						myCoord2Offset, myXLine, myNegChunkText);
-				var8.drawStringWithShadow(
+				var8.drawString(
 						String.format("b%d",
 								new Object[] { Integer.valueOf(myPosX & 15) }),
 						myCoord1Offset, myXLine, myPosChunkText);
 			}
-			var8.drawStringWithShadow(String.format("%d",
+			var8.drawString(String.format("%d",
 					new Object[] { Integer.valueOf(myPosY) }), myCoord1Offset,
 					myYLine, myPosCoordText);
 			if (myPosZ >= 0) {
-				var8.drawStringWithShadow(
+				var8.drawString(
 						String.format("c%d ",
 								new Object[] { Integer.valueOf(myPosZ >> 4) }),
 						myCoord2Offset, myZLine, myPosChunkText);
-				var8.drawStringWithShadow(
+				var8.drawString(
 						String.format("b%d",
 								new Object[] { Integer.valueOf(myPosZ & 15) }),
 						myCoord1Offset, myZLine, myPosChunkText);
 			} else {
-				var8.drawStringWithShadow(
+				var8.drawString(
 						String.format("c%d ",
 								new Object[] { Integer.valueOf(myPosZ >> 4) }),
 						myCoord2Offset, myZLine, myNegChunkText);
-				var8.drawStringWithShadow(
+				var8.drawString(
 						String.format("b%d",
 								new Object[] { Integer.valueOf(myPosZ & 15) }),
 						myCoord1Offset, myZLine, myPosChunkText);
@@ -798,49 +798,49 @@ public class BattyUI extends Gui {
 		
 		drawLogoTexture((myRHSlocation - 12), (myYLine-1));
 				
-		var8.drawStringWithShadow(myCardinalPoint[myAngle], myRHSlocation,
+		var8.drawString(myCardinalPoint[myAngle], myRHSlocation,
 				myYLine, myCompassText);
 
 		if (this.showCoords > 1) {
 			switch (myAngle) {
 			case 0:
-				var8.drawStringWithShadow(myChevronDown + myChevronDown,
+				var8.drawString(myChevronDown + myChevronDown,
 						myRHSlocation, myZLine, myNegCoordText);
 				break;
 			case 1:
-				var8.drawStringWithShadow(myChevronDown, myRHSlocation,
+				var8.drawString(myChevronDown, myRHSlocation,
 						myZLine, myNegCoordText);
-				var8.drawStringWithShadow(myChevronUp, myRHSlocation, myXLine,
+				var8.drawString(myChevronUp, myRHSlocation, myXLine,
 						myPosCoordText);
 				break;
 			case 2:
-				var8.drawStringWithShadow(myChevronUp + myChevronUp,
+				var8.drawString(myChevronUp + myChevronUp,
 						myRHSlocation, myXLine, myPosCoordText);
 				break;
 			case 3:
-				var8.drawStringWithShadow(myChevronUp, myRHSlocation, myXLine,
+				var8.drawString(myChevronUp, myRHSlocation, myXLine,
 						myPosCoordText);
-				var8.drawStringWithShadow(myChevronUp, myRHSlocation, myZLine,
+				var8.drawString(myChevronUp, myRHSlocation, myZLine,
 						myPosCoordText);
 				break;
 			case 4:
-				var8.drawStringWithShadow(myChevronUp + myChevronUp,
+				var8.drawString(myChevronUp + myChevronUp,
 						myRHSlocation, myZLine, myPosCoordText);
 				break;
 			case 5:
-				var8.drawStringWithShadow(myChevronUp, myRHSlocation, myZLine,
+				var8.drawString(myChevronUp, myRHSlocation, myZLine,
 						myPosCoordText);
-				var8.drawStringWithShadow(myChevronDown, myRHSlocation,
+				var8.drawString(myChevronDown, myRHSlocation,
 						myXLine, myNegCoordText);
 				break;
 			case 6:
-				var8.drawStringWithShadow(myChevronDown + myChevronDown,
+				var8.drawString(myChevronDown + myChevronDown,
 						myRHSlocation, myXLine, myNegCoordText);
 				break;
 			case 7:
-				var8.drawStringWithShadow(myChevronDown, myRHSlocation,
+				var8.drawString(myChevronDown, myRHSlocation,
 						myXLine, myNegCoordText);
-				var8.drawStringWithShadow(myChevronDown, myRHSlocation,
+				var8.drawString(myChevronDown, myRHSlocation,
 						myZLine, myNegCoordText);
 				break;
 			}
@@ -849,17 +849,15 @@ public class BattyUI extends Gui {
 			if (this.mc.theWorld != null
 					&& this.mc.theWorld.isBlockLoaded(myBlock)) {
 				Chunk myChunk = this.mc.theWorld.getChunkFromBlockCoords(myBlock);
-				var8.drawStringWithShadow(
-						myChunk.getBiome(myBlock,
-								this.mc.theWorld.getWorldChunkManager()).biomeName,
-						myBaseOffset, myBiomeLine, myBiomeText);
+		        BlockPos blockpos = new BlockPos(this.mc.getRenderViewEntity().posX, this.mc.getRenderViewEntity().getEntityBoundingBox().minY, this.mc.getRenderViewEntity().posZ);
+				var8.drawString(myChunk.getBiome(blockpos, this.mc.theWorld.getBiomeProvider()).getBiomeName(),myBaseOffset, myBiomeLine, myBiomeText);
 			}
 		}
 		if (this.showCoords == 3) {
 			// show minecraft day
-			var8.drawStringWithShadow(String.format("dy "), myCoord2Offset, myYLine,
+			var8.drawString(String.format("dy "), myCoord2Offset, myYLine,
 					myTitleText);
-			var8.drawStringWithShadow(String.format("%d", new Object[] { Long
+			var8.drawString(String.format("%d", new Object[] { Long
 					.valueOf(this.mc.theWorld.getWorldTime() / 24000L) }),
 					myCoord2Offset + 14, myYLine, myBiomeText);
 		}		
@@ -935,10 +933,10 @@ public class BattyUI extends Gui {
 
 		}
 		if (this.timerRunning) {
-			this.mc.fontRendererObj.drawStringWithShadow(myTime, myTimerOffset,
+			this.mc.fontRendererObj.drawString(myTime, myTimerOffset,
 					myTimerLine, myTimerRunText);
 		} else {
-			this.mc.fontRendererObj.drawStringWithShadow(myTime, myTimerOffset,
+			this.mc.fontRendererObj.drawString(myTime, myTimerOffset,
 					myTimerLine, myTimerStopText);
 		}
 	}
@@ -1025,7 +1023,7 @@ public class BattyUI extends Gui {
 					myRectColour);
 		}
 		
-		this.mc.fontRendererObj.drawStringWithShadow(myFPS, myFPSOffset,
+		this.mc.fontRendererObj.drawString(myFPS, myFPSOffset,
 				myFPSLine, myFPSText);
 		
 		
