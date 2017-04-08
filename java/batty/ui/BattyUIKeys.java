@@ -19,9 +19,10 @@ public class BattyUIKeys {
 	public static boolean keyToggleTimerRun = false;
 	public static boolean keyResetTimer = false;
 	public static boolean keyMoveTimer = false;
-	public static boolean keyToggleFPSVis = false;
-	public static boolean keyMoveFPS = false;
+	public static boolean keyToggleInfoVis = false;
+	public static boolean keyMoveInfo = false;
 
+	
 	@SubscribeEvent
 	public void trackKeyInputs(KeyInputEvent event) {
 
@@ -39,10 +40,10 @@ public class BattyUIKeys {
 			keyResetTimer = true;
 		} else if (BattyBaseUI.moveTimerScreenPos.isPressed()){
 			keyMoveTimer = true;
-        } else if (BattyBaseUI.hideunhideFPSkey.isPressed()) {
-			keyToggleFPSVis = true;
-		} else if (BattyBaseUI.moveFPSScreenPos.isPressed()){
-			keyMoveFPS = true;
+        } else if (BattyBaseUI.hideunhideInfokey.isPressed()) {
+			keyToggleInfoVis = true;
+		} else if (BattyBaseUI.moveInfoScreenPos.isPressed()){
+			keyMoveInfo = true;
         }
 
 	}

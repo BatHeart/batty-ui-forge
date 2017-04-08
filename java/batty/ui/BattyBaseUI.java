@@ -21,7 +21,7 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 
-@Mod(modid = "Batty's Coordinates PLUS", name = "Batty's Coordinates PLUS", version = "1.9_1.9.0")
+@Mod(modid = "battys_coordinates_plus", name = "Batty's Coordinates PLUS", version = "1.11.2_002")
 /**
  * Forge base class for BattyUI
  * @author BatHeart
@@ -39,7 +39,7 @@ public class BattyBaseUI {
 	public static CommonProxy proxy;
 
 	public static KeyBinding hideunhideCoordskey = new KeyBinding(
-			"Hide / Unhide Coords", Keyboard.KEY_NUMPAD4, "Batty's Coordinates");
+			"Change Coord Display", Keyboard.KEY_NUMPAD4, "Batty's Coordinates");
 	public static KeyBinding moveCoordScreenPos = new KeyBinding(
 			"Change Coords Screen Position", Keyboard.KEY_NUMPAD1,
 			"Batty's Coordinates");
@@ -54,12 +54,12 @@ public class BattyBaseUI {
 	public static KeyBinding moveTimerScreenPos = new KeyBinding(
 			"Change Timer Screen Position", Keyboard.KEY_NUMPAD2,
 			"Batty's Timer");
-	public static KeyBinding hideunhideFPSkey = new KeyBinding(
-			"Hide / Unhide FPS", Keyboard.KEY_NUMPAD6, "Batty's FPS");
-	public static KeyBinding moveFPSScreenPos = new KeyBinding(
-			"Change FPS Screen Position", Keyboard.KEY_NUMPAD3,
-			"Batty's FPS");
-
+	public static KeyBinding hideunhideInfokey = new KeyBinding(
+			"Change Info Display", Keyboard.KEY_NUMPAD6, "Batty's Info");
+	public static KeyBinding moveInfoScreenPos = new KeyBinding(
+			"Change Info Screen Position", Keyboard.KEY_NUMPAD3,
+			"Batty's Info");
+	
 	@EventHandler
 	public void preInit(FMLPreInitializationEvent event) {
 
@@ -70,9 +70,9 @@ public class BattyBaseUI {
 		ClientRegistry.registerKeyBinding(startstopTimerkey);
 		ClientRegistry.registerKeyBinding(resetTimerkey);
 		ClientRegistry.registerKeyBinding(moveTimerScreenPos);
-		ClientRegistry.registerKeyBinding(hideunhideFPSkey);
-		ClientRegistry.registerKeyBinding(moveFPSScreenPos);
-		
+		ClientRegistry.registerKeyBinding(hideunhideInfokey);
+		ClientRegistry.registerKeyBinding(moveInfoScreenPos);
+
 	}
 
 	@EventHandler

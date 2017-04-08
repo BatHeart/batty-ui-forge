@@ -1,0 +1,15 @@
+[{
+  "modid": "battys_coordinates_plus",
+  "name": "Batty's Coordinates PLUS Mod for Forge",
+  "description": "Incorporates Batty's Coordinates, Stopwatch Timer and FPS display.",
+  "version": "1.11.2_002",
+  "mcversion": "1.11.2",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["BatHeart"],
+  "credits": "",
+  "logoFile": "assets/battyui/textures/batheart_icon.png",
+  "screenshots": [],
+  "dependencies": []
+}
+]

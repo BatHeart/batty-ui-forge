@@ -24,6 +24,7 @@ import net.minecraft.util.math.BlockPos;
 //import net.minecraft.util.Direction;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -39,7 +40,7 @@ import net.minecraftforge.fml.common.gameevent.PlayerEvent;
  * the user options files
  * 
  * @author BatHeart
- * @version 1.9 (1.9.01)
+ * @version 1.11.2 (002)
  */
 public class BattyUI extends Gui {
 
@@ -50,12 +51,12 @@ public class BattyUI extends Gui {
 	boolean shadedCoords = true;
 	boolean hideTimer = false;
 	boolean shadedTimer = true;
-	boolean timerRunning = false;
-	boolean toggleTimer = false;
-	boolean resetTimer = false;
-	boolean shadedFPS = true;
-	boolean hideFPS = false;
+	public boolean timerRunning = false;
+	public boolean toggleTimer = false;
+	public boolean resetTimer = false;
+	boolean shadedInfo = true;
 	boolean coordsCopyTPFormat = false;
+	int showInfo = 1;
 
 	int myTitleText = 0xFF8800; // default textcolour = oldgold
 	int myPosCoordText = 0x55FFFF; // default poscoordscolour = aqua
@@ -69,6 +70,9 @@ public class BattyUI extends Gui {
 	int myTimerStopText = 0xFF8800; // default timer stop colour = oldgold
 	int myTimerRunText = 0x55FFFF; // default timer running colour = aqua
 	int myFPSText = 0x55FFFF; // default fps colour = aqua
+	int myDimLightText = 0x00AAAA; // default dim light level colour = darkaqua
+	int myLightLevelText = 0xCCFFFF; // default light level colour = coolblue
+	int myMoonText =  0x55FFFF; // default coordscolour = aqua
 	int myPosX;
 	int myPosY;
 	int myPosZ;
@@ -81,12 +85,28 @@ public class BattyUI extends Gui {
 	int myFind;
 
 	protected static final ResourceLocation batUIResourceLocation = new ResourceLocation("battyUI:textures/batheart_icon.png");
+	protected static final ResourceLocation[] moonPhase = 
+	{new ResourceLocation("battyUI:textures/moon_phase_0.png"),
+	 new ResourceLocation("battyUI:textures/moon_phase_1.png"),
+	 new ResourceLocation("battyUI:textures/moon_phase_2.png"),
+	 new ResourceLocation("battyUI:textures/moon_phase_3.png"),
+	 new ResourceLocation("battyUI:textures/moon_phase_4.png"),
+	 new ResourceLocation("battyUI:textures/moon_phase_5.png"),
+	 new ResourceLocation("battyUI:textures/moon_phase_6.png"),
+	 new ResourceLocation("battyUI:textures/moon_phase_7.png")};
 	
 	static float batLogoScaler = 0.036F;
 	static int batLogoU = 0;
 	static int batLogoV = 0;
 	static int batLogoX = (int) (256.0F * batLogoScaler);
-	static int batLogoY = (int) (256.0D * batLogoScaler);
+	static int batLogoY = (int) (256.0D * batLogoScaler);	
+	
+	static float moonPhaseScaler = 0.036F;
+	static int moonPhaseU = 0;
+	static int moonPhaseV = 0;
+	static int moonPhaseX = (int) (256.0F * moonPhaseScaler);
+	static int moonPhaseY = (int) (256.0D * moonPhaseScaler);
+	
 	
 	int coordLocation = 0;
 
@@ -101,10 +121,10 @@ public class BattyUI extends Gui {
 	int clockBoxW, clockBoxH, clockBoxL, clockBoxR, clockBoxTop, clockBoxBase;
 	int myTimerLine, myTimerOffset;
 	
-	int fpsLocation = 1;
-	int fpsBoxW, fpsBoxH, fpsBoxL, fpsBoxR, fpsBoxTop, fpsBoxBase;
-	int myFPSLine, myFPSOffset;
-
+	int infoLocation = 1;
+	int infoBoxW, infoBoxH, infoBoxL, infoBoxR, infoBoxTop, infoBoxBase;
+	int myInfoLine, myInfoOffset;
+	
 	private String myChevronUp = "+"; // default 'increasing coordinates'
 										// character
 	private String myChevronDown = "-"; // default 'decreasing coordinates'
@@ -121,6 +141,9 @@ public class BattyUI extends Gui {
 			0x5555FF, 0x55FF55, 0x55FFFF, 0x88AA00, 0x8855CC, 0xCC5500,
 			0xCCFF00, 0xCCCCCC, 0xCCFFFF, 0xFF5555, 0xFFAA00, 0xFF8800,
 			0xFF55FF, 0xFFAAAA, 0xFFFF55, 0xFFFFFF };
+	
+	private int myMoon;
+	
 	private File optionsFile;
 	private File runtimeFile;
 	private int secondCounter = 0;
@@ -182,6 +205,29 @@ public class BattyUI extends Gui {
 		GL11.glDisable(GL11.GL_BLEND);
 	}
 	
+	/**
+	 * Calls drawTexture() to present the Moon phase at the screen position
+	 * specified
+	 * 
+	 * @param x
+	 *            - location across screen from left to right
+	 * @param y
+	 *            - location down screen from top to bottom
+	 * @param m
+	 * 			  - which moon phase image to show           
+	 */
+	protected void drawMoonTexture(int x, int y, int m){
+		GL11.glEnable(GL11.GL_BLEND);
+		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+		GL11.glColor4f(255.0F, 255.0F, 255.0F, 255.0F);
+
+		drawTexture(x, y, moonPhaseU, moonPhaseV, (int) (moonPhaseX / moonPhaseScaler),
+				(int) (moonPhaseY / moonPhaseScaler), moonPhase[m],
+				moonPhaseScaler);
+
+		GL11.glDisable(GL11.GL_BLEND);		
+	}
+
 	
 	/**
 	 * Searches for 'name' within the array 'names'
@@ -211,11 +257,11 @@ public class BattyUI extends Gui {
 	 */
 	private int getCardinalPoint(float par0) {
 		double myPoint;
-		myPoint = MathHelper.wrapAngleTo180_float(par0) + 180D;
+		myPoint = MathHelper.wrapDegrees(par0) + 180D;
 		myPoint += 22.5D;
 		myPoint %= 360D;
 		myPoint /= 45D;
-		return MathHelper.floor_double(myPoint);
+		return MathHelper.floor(myPoint);
 	}
 
 	/**
@@ -275,34 +321,29 @@ public class BattyUI extends Gui {
 	}
 
 	/**
-	 * Converts the Minecraft.hideFPS variable into a String ready for
+	 * Converts the Minecraft.showInfo variable into a String ready for
 	 * writing to options file
 	 * 
-	 * @return a String containing either "true" or "false"
+	 * @return a String containing value from "0" to "2"
 	 */
-	private String constructFPSVisString() {
-		String var1;
-		if (this.hideFPS) {
-			var1 = "false";
-		} else {
-			var1 = "true";
-		}
+	private String constructInfoVisString() {
+		String var1 = "";
+		var1 = var1 + this.showInfo;
 		return var1;
 	}
 
 	/**
-	 * Converts the Minecraft.fpsLocation variable into a String ready for
+	 * Converts the Minecraft.infoLocation variable into a String ready for
 	 * writing to options file
 	 * 
 	 * @return a String containing value from "0" to "4"
 	 */
-	private String constructFPSLocString() {
+	private String constructInfoLocString() {
 		String var1 = "";
-		var1 = var1 + this.fpsLocation;
+		var1 = var1 + this.infoLocation;
 		return var1;
 	}
 
-	
 	/**
 	 * Converts the Minecraft.timerLocation variable into a String ready for
 	 * writing to options file
@@ -548,11 +589,12 @@ public class BattyUI extends Gui {
 			}
 		}
 
-		myShade = propts.getProperty("FPS.shade");
-		myTxtCol1 = propts.getProperty("FPS.colours.Text");
-		//myTxtLoc1 = propts.getProperty("FPS.layout.ScreenPosition");
+
+		myShade = propts.getProperty("Info.shade");
+		myTxtCol1 = propts.getProperty("Info.colours.FPS");
+
 		if (myShade != null) {
-			this.shadedFPS = myShade.equals("true");
+			this.shadedInfo = myShade.equals("true");
 		}
 		if (myTxtCol1 != null) {
 			myFind = nameSearch(myColourList, myTxtCol1);
@@ -561,6 +603,29 @@ public class BattyUI extends Gui {
 			}
 		}
 	
+		myTxtCol1 = propts.getProperty("Info.colours.Bright");
+		myTxtCol2 = propts.getProperty("Info.colours.Dim");
+
+		if (myTxtCol1 != null) {
+			myFind = nameSearch(myColourList, myTxtCol1);
+			if (myFind != -1) {
+				myLightLevelText = myColourCodes[myFind];
+			}
+		}
+		if (myTxtCol2 != null) {
+			myFind = nameSearch(myColourList, myTxtCol2);
+			if (myFind != -1) {
+				myDimLightText = myColourCodes[myFind];
+			}
+		}
+		myTxtCol3 = propts.getProperty("Info.colours.Moon");
+		if (myTxtCol3 != null) {
+			myFind = nameSearch(myColourList, myTxtCol3);
+			if (myFind != -1) {
+				myMoonText = myColourCodes[myFind];
+			}
+		}
+			
 	}
 
 	/**
@@ -605,15 +670,14 @@ public class BattyUI extends Gui {
 		if (myTimerRuns != null) {
 			this.timerRunning = myTimerRuns.equals("true");
 		}
-		String myFPSVis = proprt.getProperty("FPS.visible");
-		if (myFPSVis != null) {
-			this.hideFPS = !myFPSVis.equals("true");
+		String myInfoVis = proprt.getProperty("Info.visible");
+		if (myInfoVis != null) {
+			this.showInfo = Integer.parseInt(myInfoVis);
 		}
-		String myFPSLoc = proprt.getProperty("FPS.location");
-		if (myFPSLoc != null) {
-			this.fpsLocation = Integer.parseInt(myFPSLoc);
-		}
-	}
+		String myInfoLoc = proprt.getProperty("Info.location");
+		if (myInfoLoc != null) {
+			this.infoLocation = Integer.parseInt(myInfoLoc);
+		}	}
 
 	/**
 	 * Handles writing away the game data to the BatMod.runtime file
@@ -626,8 +690,8 @@ public class BattyUI extends Gui {
 		proprt.setProperty("Coords.location", this.constructCoordLocString());
 		proprt.setProperty("Timer.location", this.constructTimerLocString());
 		proprt.setProperty("Timer.running", this.constructTimerRunString());
-		proprt.setProperty("FPS.visible", this.constructFPSVisString());
-		proprt.setProperty("FPS.location", this.constructFPSLocString());
+		proprt.setProperty("Info.visible", this.constructInfoVisString());
+		proprt.setProperty("Info.location", this.constructInfoLocString());
 		try {
 			FileOutputStream fos = new FileOutputStream(this.runtimeFile);
 			proprt.store(fos, null);
@@ -647,14 +711,14 @@ public class BattyUI extends Gui {
 		FontRenderer var8 = this.mc.fontRendererObj;
 		ScaledResolution myRes = new ScaledResolution(this.mc);
 		BlockPos myBlock = new BlockPos(this.mc.getRenderViewEntity().posX, this.mc.getRenderViewEntity().getEntityBoundingBox().minY, this.mc.getRenderViewEntity().posZ);		
-		myPosX = MathHelper.floor_double(this.mc.thePlayer.posX);
-		myXminus = (this.mc.thePlayer.posX < 0);		
-		myPosY = MathHelper.floor_double(this.mc.thePlayer.getEntityBoundingBox().minY);
-		myPosZ = MathHelper.floor_double(this.mc.thePlayer.posZ);
-		myZminus = (this.mc.thePlayer.posZ < 0);		
-		myAngle = getCardinalPoint(this.mc.thePlayer.rotationYaw);
+		myPosX = MathHelper.floor(this.mc.player.posX);
+		myXminus = (this.mc.player.posX < 0);		
+		myPosY = MathHelper.floor(this.mc.player.getEntityBoundingBox().minY);
+		myPosZ = MathHelper.floor(this.mc.player.posZ);
+		myZminus = (this.mc.player.posZ < 0);		
+		myAngle = getCardinalPoint(this.mc.player.rotationYaw);
 		myDir = MathHelper
-				.floor_double((double) (this.mc.thePlayer.rotationYaw * 4.0F / 360.0F) + 0.5D) & 3;
+				.floor((double) (this.mc.player.rotationYaw * 4.0F / 360.0F) + 0.5D) & 3;
 		//myMoveX = Direction.offsetX[myDir];
 		//myMoveZ = Direction.offsetZ[myDir];
 
@@ -722,7 +786,7 @@ public class BattyUI extends Gui {
 		var8.drawString(String.format("z: "), myBaseOffset, myZLine,
 				myTitleText);
 
-		if (this.showCoords < 4) {
+		if (this.showCoords < 5) {
 			if (!myXminus) {
 				var8.drawString(
 						String.format("%d",
@@ -846,19 +910,19 @@ public class BattyUI extends Gui {
 			}
 		}
 		if (this.showCoords > 2) {
-			if (this.mc.theWorld != null
-					&& this.mc.theWorld.isBlockLoaded(myBlock)) {
-				Chunk myChunk = this.mc.theWorld.getChunkFromBlockCoords(myBlock);
+			if (this.mc.world != null
+					&& this.mc.world.isBlockLoaded(myBlock)) {
+				Chunk myChunk = this.mc.world.getChunkFromBlockCoords(myBlock);
 		        BlockPos blockpos = new BlockPos(this.mc.getRenderViewEntity().posX, this.mc.getRenderViewEntity().getEntityBoundingBox().minY, this.mc.getRenderViewEntity().posZ);
-				var8.drawString(myChunk.getBiome(blockpos, this.mc.theWorld.getBiomeProvider()).getBiomeName(),myBaseOffset, myBiomeLine, myBiomeText);
+				var8.drawString(myChunk.getBiome(blockpos, this.mc.world.getBiomeProvider()).getBiomeName(),myBaseOffset, myBiomeLine, myBiomeText);
 			}
 		}
-		if (this.showCoords == 3) {
+		if (this.showCoords == 4) {
 			// show minecraft day
 			var8.drawString(String.format("dy "), myCoord2Offset, myYLine,
 					myTitleText);
 			var8.drawString(String.format("%d", new Object[] { Long
-					.valueOf(this.mc.theWorld.getWorldTime() / 24000L) }),
+					.valueOf(this.mc.world.getWorldTime() / 24000L) }),
 					myCoord2Offset + 14, myYLine, myBiomeText);
 		}		
 
@@ -942,92 +1006,155 @@ public class BattyUI extends Gui {
 	}
 
 	/**
-	 * Writes the FPS string up onto the game screen
+	 * Writes the Info Panel string up onto the game screen
 	 */
-	private void renderPlayerFPS() {
+	private void renderInfo() {
 		GL11.glEnable(GL11.GL_ALPHA_TEST);
 		ScaledResolution myRes = new ScaledResolution(this.mc);
-		String myFPS = mc.debug.split(" ")[0] + " FPS";
-		int fpsStringWid = this.mc.fontRendererObj.getStringWidth(myFPS);
-		fpsBoxW = 12 + fpsStringWid;
-		fpsBoxH = 10;
+		String myInfoString = "";
+		int infoStringWid, myLight = 0, myMoon = 0;
+		switch (this.showInfo ) {
+			
+		case 1:
+			// FPS is displayed in info panel
+			myInfoString = mc.debug.split(" ")[0] + " FPS";
+			break;
+			
+		case 2:
+			// Light level is displayed in info panel
+			BlockPos blockpos = new BlockPos(this.mc.getRenderViewEntity().posX, this.mc.getRenderViewEntity().getEntityBoundingBox().minY, this.mc.getRenderViewEntity().posZ);
+			Chunk chunk = this.mc.world.getChunkFromBlockCoords(blockpos);
+			if (myPosY >= 0){
+				myLight = chunk.getLightFor(EnumSkyBlock.BLOCK, blockpos);
+			}else{
+				myLight = 0;
+			}
+			myInfoString = "Lit " + myLight + " Blk";
+			break;
+			
+		case 3:
+			// Moon phase is displayed in info panel
+			if (this.mc.world != null) {
+				myMoon = this.mc.world.getMoonPhase();
+				myInfoString = "Moon " + "  ";
+
+			}
+					
+			break;
+			
+		default:
+			// It should never get here
+			break;
+		
+		}
+		infoStringWid = this.mc.fontRendererObj.getStringWidth(myInfoString);
+		infoBoxW = 12 + infoStringWid;
+		infoBoxH = 11;
 		
 		// screen locations
-		switch (this.fpsLocation) {
+		switch (this.infoLocation) {
 		case 0:
 			// top left positioning
-			fpsBoxR = fpsBoxW + 1;
-			fpsBoxBase = fpsBoxH + 1;
+			infoBoxR = infoBoxW + 1;
+			infoBoxBase = infoBoxH + 1;
 			if (this.timerLocation == 0) {
-				fpsBoxBase += (clockBoxH + 1);
+				infoBoxBase += (clockBoxH + 1);
 			}
 			if (this.coordLocation == 0) {
-				fpsBoxBase += (coordBoxH + 1);
+				infoBoxBase += (coordBoxH + 1);
 			}
 
 			break;
 		case 1:
 			// top centre positioning
-			fpsBoxR = (myRes.getScaledWidth() / 2) + (fpsBoxW / 2);
-			fpsBoxBase = fpsBoxH + 1;
+			infoBoxR = (myRes.getScaledWidth() / 2) + (infoBoxW / 2);
+			infoBoxBase = infoBoxH + 1;
 			if (this.timerLocation == 1) {
-				fpsBoxBase += (clockBoxH + 1);
+				infoBoxBase += (clockBoxH + 1);
 			}
 			break;
 			
 		case 2:
 			// top right positioning
-			fpsBoxR = myRes.getScaledWidth() - 1;
-			fpsBoxBase = fpsBoxH + 1;
+			infoBoxR = myRes.getScaledWidth() - 1;
+			infoBoxBase = infoBoxH + 1;
 			if (this.timerLocation == 2) {
-				fpsBoxBase += (clockBoxH + 1);
+				infoBoxBase += (clockBoxH + 1);
 			}
 			if (this.coordLocation == 1) {
-				fpsBoxBase += (coordBoxH + 1);
+				infoBoxBase += (coordBoxH + 1);
 			}
 			break;
 
 		case 3:
 			// bottom right positioning
-			fpsBoxR = myRes.getScaledWidth() - 1;
-			fpsBoxBase = myRes.getScaledHeight() - 1;
+			infoBoxR = myRes.getScaledWidth() - 1;
+			infoBoxBase = myRes.getScaledHeight() - 1;
 			if (this.timerLocation == 3) {
-				fpsBoxBase -= (clockBoxH + 1);
+				infoBoxBase -= (clockBoxH + 1);
 			}
 			if (this.coordLocation == 2) {
-				fpsBoxBase -= (coordBoxH + 1);
+				infoBoxBase -= (coordBoxH + 1);
 			}
 			break;
 
 		case 4:
 			// Bottom left Positioning
-			fpsBoxR = fpsBoxW + 1;
-			fpsBoxBase = myRes.getScaledHeight() - 15;
+			infoBoxR = infoBoxW + 1;
+			infoBoxBase = myRes.getScaledHeight() - 15;
 			if (this.timerLocation == 4) {
-				fpsBoxBase -= (clockBoxH + 1);
+				infoBoxBase -= (clockBoxH + 1);
 			}
 			if (this.coordLocation == 3) {
-				fpsBoxBase -= (coordBoxH + 1);
+				infoBoxBase -= (coordBoxH + 1);
 			}
 			break;
 		}
 		
-		fpsBoxL = fpsBoxR - fpsBoxW;
-		fpsBoxTop = fpsBoxBase - fpsBoxH;
+		infoBoxL = infoBoxR - infoBoxW;
+		infoBoxTop = infoBoxBase - infoBoxH;
 
-		myFPSLine = fpsBoxTop + 1;
-		myFPSOffset = fpsBoxL + 6;
+		myInfoLine = infoBoxTop + 1;
+		myInfoOffset = infoBoxL + 6;
 
-		if (this.shadedFPS) {
-			drawRect((int) fpsBoxL, fpsBoxTop, fpsBoxR, fpsBoxBase,
+		if (this.shadedInfo) {
+			drawRect((int) infoBoxL, infoBoxTop, infoBoxR, infoBoxBase,
 					myRectColour);
 		}
 		
-		this.mc.fontRendererObj.drawString(myFPS, myFPSOffset,
-				myFPSLine, myFPSText);
+		switch (this.showInfo ) {
 		
+		case 1:
+			// FPS is displayed in info panel
+			this.mc.fontRendererObj.drawString(myInfoString, myInfoOffset,
+					myInfoLine, myFPSText);
+
+			break;
+			
+		case 2:
+			// Light level is displayed in info panel
+			if (myLight > 7){
+				this.mc.fontRendererObj.drawString(myInfoString, myInfoOffset,
+						myInfoLine, myLightLevelText);	
+			} else
+			{
+				this.mc.fontRendererObj.drawString(myInfoString, myInfoOffset,
+						myInfoLine, myDimLightText);	
+			}
+			break;
+			
+		case 3:
+			// Moon phase is displayed in info panel
+			this.mc.fontRendererObj.drawString(myInfoString, myInfoOffset,
+					myInfoLine, myMoonText);
+			drawMoonTexture((infoBoxR - 12), (myInfoLine), myMoon);
+			break;
+			
+		default:
+			// It should never get here
+			break;
 		
-		
+		}
 	}
 	
 	
@@ -1039,7 +1166,7 @@ public class BattyUI extends Gui {
 	 */
 	public void hideUnhideCoords() {
 		this.showCoords += 1;
-		if (this.showCoords > 4) {
+		if (this.showCoords > 5) {
 			this.showCoords = 0;
 		}
 		this.storeRuntimeOptions();
@@ -1099,26 +1226,28 @@ public class BattyUI extends Gui {
 	}
 
 	/**
-	 * Toggles the FPS visibility on and off 
-	 * Also stores the current option into the BatMod.runtime file
+	 * Changes the info panel display by scrolling through the different
+	 * options one by one. Also stores the current option into the BatMod.runtime
+	 * file
 	 */
-	public void hideUnhideFPS() {
-		this.hideFPS = !this.hideFPS;
-		this.storeRuntimeOptions();
-		BattyUIKeys.keyToggleFPSVis = false;
-	}
-
-	/**
-	 * Moves the position that the fps appears in on-screen between the four
-	 * corners and the top centre
-	 */
-	public void rotateScreenFPS() {
-		this.fpsLocation += 1;
-		if (this.fpsLocation > 3) {
-			this.fpsLocation = 0;
+	public void hideUnhideInfo() {
+		this.showInfo += 1;
+		if (this.showInfo > 3) {
+			this.showInfo = 0;
 		}
 		this.storeRuntimeOptions();
-		BattyUIKeys.keyMoveFPS = false;
+
+	}
+	/**
+	 * Moves the position that the info panel appears in on-screen between the four
+	 * corners and the top centre
+	 */
+	public void rotateScreenInfo() {
+		this.infoLocation += 1;
+		if (this.infoLocation > 3) {
+			this.infoLocation = 0;
+		}
+		this.storeRuntimeOptions();
 	}
 	
 	/**
@@ -1127,7 +1256,7 @@ public class BattyUI extends Gui {
 	 */
 	@SubscribeEvent
 	public void renderPlayerInfo(RenderGameOverlayEvent event) {
-		if (event.isCancelable() || event.type != ElementType.HOTBAR) {
+		if (event.isCancelable() || event.getType() != ElementType.HOTBAR) {
 			return;
 		}
 
@@ -1161,13 +1290,16 @@ public class BattyUI extends Gui {
 			this.rotateScreenTimer();
 		}
 		
-		if (BattyUIKeys.keyToggleFPSVis) {
-			this.hideUnhideFPS();
+		if (BattyUIKeys.keyToggleInfoVis) {
+			this.hideUnhideInfo();
+			BattyUIKeys.keyToggleInfoVis = false;
 		}
 		
-		if (BattyUIKeys.keyMoveFPS) {
-			this.rotateScreenFPS();
-		}
+		if (BattyUIKeys.keyMoveInfo) {
+			this.rotateScreenInfo();
+			BattyUIKeys.keyMoveInfo = false;
+		}		
+
 
 		this.updateTimer(this.mc.ingameGUI.getUpdateCounter());
 
@@ -1177,20 +1309,24 @@ public class BattyUI extends Gui {
 			} else {
 				this.coordBoxH = 0;
 			}
+
 			if (this.hideTimer) {
 				this.clockBoxH = 0;
 			} else {
 				this.renderPlayerTimer();
 			}
-			if (!this.hideFPS) {
-				this.renderPlayerFPS();
+
+			if (this.showInfo > 0) {
+				this.renderInfo();
+			} else {
+				this.infoBoxH = 0;
 			}
 		}
 
 	}
 @SubscribeEvent
 public void stopTheClock(GuiOpenEvent event){
-	if (event.gui instanceof GuiMainMenu)
+	if (event.getGui() instanceof GuiMainMenu)
 	this.timerRunning = false;
 	storeRuntimeOptions();
 }
