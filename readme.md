@@ -23,12 +23,12 @@ Colour-coded so you know at a glance if it is stopped or running.
 ## Info Panel
 This display will show either the FPS, the Block Light-level or the Moon phase. You can switch between these at the press of a button.
 
-FPS Display
+### FPS Display
 The Frames per Second that the game is running at is displayed in a corner of the screen.
 
-Block Light-level
+### Block Light-level
 The block light (i.e. artificial light reaching this block) of the block the player is standing on is displayed
 
-Moon phase
+### Moon phase
 An icon, showing the current phase of the moon, is displayed.
 
